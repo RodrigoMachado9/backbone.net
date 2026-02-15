@@ -1,4 +1,4 @@
-# Backbone.net — Lab de Backbone L3
+# Backbone.net — Lab AX Backbone L3
 
 <p align="center">
   <img alt="OS" src="https://img.shields.io/badge/OS-Ubuntu_24.04-E95420?logo=ubuntu&logoColor=white">
@@ -29,8 +29,6 @@
 | 07 | Observabilidade | SNMP, Grafana, NetFlow | ⏳ Pendente |
 | 08 | Integração AWS | **FortiGate** VPN concentrator, IPsec | ⏳ Pendente |
 | 09 | IaC | **Terraform** + **Ansible** — infra e config como código | ⏳ Pendente |
-
-**Roadmap completo:** [`docs/roadmap/ROADMAP.md`](docs/roadmap/ROADMAP.md)
 
 ---
 
@@ -133,7 +131,6 @@ backbone.net/
 
 | Doc | Descrição |
 |-----|-----------|
-| [Roadmap](docs/roadmap/ROADMAP.md) | Plano completo das 7 fases |
 | [Arquitetura](docs/architecture/architecture.md) | Decisões de design |
 | [Endereçamento](docs/architecture/addressing-plan.md) | Plano IP completo |
 | [Runbook](docs/operations/runbook.md) | Comandos operacionais |
