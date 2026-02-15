@@ -1,6 +1,15 @@
-# Fase 06 - Seguranca
-> Firewall + CoPP + uRPF
+# Fase 06 - Seguranca (FortiGate + VyOS)
+> FortiGate zone-firewall + VyOS CoPP + uRPF
 
 **Status:** Pendente
 
-Configs serao gerados quando as fases anteriores estiverem validadas.
+### FortiGate
+- Security profiles (IPS, logging)
+- Zone-based policies
+- Admin RBAC
+- Syslog para host
+
+### VyOS
+- Control-plane protection (CoPP)
+- uRPF anti-spoofing nos edges
+- SSH hardening

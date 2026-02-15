@@ -7,9 +7,10 @@
 | 10.255.0.0/16 | Links backbone P2P (/30) | 01 |
 | 10.0.0.0/24 | Loopbacks dos roteadores (/32) | 02 |
 | 10.10.0.0/16 | LANs de clientes (/24) | 01 |
-| 10.255.100.0/30 | ISP <-> core-dc1 | 05 |
+| 10.255.100.0/30 | ISP <-> FortiGate (WAN) | 05 |
 | 10.255.101.0/30 | ISP <-> core-dc2 | 05 |
-| 10.200.0.0/24 | Rede de gerência | 06 |
+| 10.255.200.0/30 | FortiGate <-> core-dc1 (CORE) | 05 |
+| 10.200.0.0/24 | Rede de gerência (FortiGate MGMT) | 05 |
 | 10.20.0.0/16 | VPC AWS | 08 |
 | 169.254.21.0/30 | AWS VPN Tunnel 1 (inside) | 08 |
 | 169.254.21.4/30 | AWS VPN Tunnel 2 (inside) | 08 |
@@ -54,12 +55,14 @@
 | CLIENTE-A | 65000:100 | 65000:100 | edge-a, edge-c | 10.10.1.0/24, 10.10.3.0/24 |
 | CLIENTE-B | 65000:200 | 65000:200 | edge-b | 10.10.2.0/24 |
 
-## ISP Peering (Fase 05)
+## ISP Peering + FortiGate (Fase 05)
 
 | Link | Rede | Ponta A | Ponta B |
 |------|------|---------|---------|
-| ISP ↔ core-dc1 | 10.255.100.0/30 | ISP: .1 | core-dc1: .2 |
+| ISP ↔ FortiGate | 10.255.100.0/30 | ISP: .1 | FortiGate port1: .2 |
 | ISP ↔ core-dc2 | 10.255.101.0/30 | ISP: .1 | core-dc2: .2 |
+| FortiGate ↔ core-dc1 | 10.255.200.0/30 | FortiGate port2: .1 | core-dc1 eth4: .2 |
+| Management | 10.200.0.0/24 | FortiGate port3: .1 | Host/MGMT: .10 |
 
 ## AWS VPN (Fase 08)
 

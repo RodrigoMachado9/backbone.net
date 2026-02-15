@@ -1,16 +1,18 @@
-# Backbone.net — Lab de Backbone L3
+# Backbone.net — AX Lab Backbone L3
 
 <p align="center">
   <img alt="OS" src="https://img.shields.io/badge/OS-Ubuntu_24.04-E95420?logo=ubuntu&logoColor=white">
   <img alt="Hypervisor" src="https://img.shields.io/badge/Hypervisor-KVM%2Fvirt--manager-blue">
   <img alt="RouterOS" src="https://img.shields.io/badge/RouterOS-VyOS_1.4+-orange">
+  <img alt="Firewall" src="https://img.shields.io/badge/Firewall-FortiGate_VM-red">
   <img alt="Routing" src="https://img.shields.io/badge/Routing-OSPF%20%2B%20iBGP%20(AS%2065000)-green">
   <img alt="Fase" src="https://img.shields.io/badge/Fase_atual-01-red">
   <img alt="Custo" src="https://img.shields.io/badge/Custo-R%24%200-success">
 </p>
 
 > Lab progressivo para aprender arquitetura de backbone — de OSPF básico até MPLS L3VPN,
-> peering eBGP, segurança e observabilidade. 100% virtualizado no KVM.
+> peering eBGP, segurança com FortiGate e observabilidade. 100% virtualizado no KVM.
+> Usa **VyOS** para roteamento de backbone e **FortiGate VM** para segurança/firewall/VPN.
 
 ---
 
@@ -22,10 +24,10 @@
 | 02 | Resiliência | Loopbacks, failover | ⏳ Pendente |
 | 03 | MPLS Core | LDP, label switching | ⏳ Pendente |
 | 04 | L3VPN | MP-BGP, VPNv4, VRF | ⏳ Pendente |
-| 05 | Peering Externo | eBGP, políticas, communities | ⏳ Pendente |
-| 06 | Segurança | Firewall, CoPP, uRPF | ⏳ Pendente |
+| 05 | Peering Externo | eBGP, políticas + **FortiGate edge** | ⏳ Pendente |
+| 06 | Segurança | **FortiGate** firewall, CoPP, uRPF | ⏳ Pendente |
 | 07 | Observabilidade | SNMP, Grafana, NetFlow | ⏳ Pendente |
-| 08 | Integração AWS | Site-to-Site VPN, IPsec, BGP | ⏳ Pendente |
+| 08 | Integração AWS | **FortiGate** VPN concentrator, IPsec | ⏳ Pendente |
 
 **Roadmap completo:** [`docs/roadmap/ROADMAP.md`](docs/roadmap/ROADMAP.md)
 
@@ -60,8 +62,10 @@ Detalhe: [`docs/architecture/addressing-plan.md`](docs/architecture/addressing-p
 
 - Ubuntu 24.04 LTS
 - KVM + virt-manager (`sudo apt install qemu-kvm libvirt-daemon-system virt-manager`)
-- VyOS ISO (rolling ou 1.4 LTS)
-- ~4GB RAM livre (512MB por VM × 5)
+- VyOS ISO (rolling ou 1.4 LTS) — backbone e roteamento
+- FortiGate-VM64-KVM image (a partir da fase 05) — firewall e VPN
+  - Conta gratuita em forticloud.com para licença trial permanente
+- ~5GB RAM livre (512MB × 5 VyOS + 2GB × 1 FortiGate)
 - Virtualização habilitada na BIOS (VT-x / AMD-V)
 
 ---

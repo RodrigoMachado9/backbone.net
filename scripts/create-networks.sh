@@ -21,9 +21,10 @@ declare -A NETWORKS=(
 
 # Redes reservadas para fases futuras
 declare -A NETWORKS_FUTURE=(
-  [net-isp-dc1]="ISP <-> core-dc1 (Fase 05)"
+  [net-isp-fg]="ISP <-> FortiGate WAN (Fase 05)"
   [net-isp-dc2]="ISP <-> core-dc2 (Fase 05)"
-  [net-mgmt]="Rede de gerencia (Fase 06)"
+  [net-fg-dc1]="FortiGate CORE <-> core-dc1 (Fase 05)"
+  [net-mgmt]="Rede de gerencia FortiGate (Fase 05)"
 )
 
 echo "============================================"
@@ -76,8 +77,8 @@ echo ""
 read -p "Criar redes para fases futuras (05-07)? [s/N] " -n 1 -r
 echo ""
 if [[ $REPLY =~ ^[Ss]$ ]]; then
-  echo "--- Redes Futuras ---"
-  for name in net-isp-dc1 net-isp-dc2 net-mgmt; do
+  echo "--- Redes Futuras (Fase 05+: FortiGate + ISP) ---"
+  for name in net-isp-fg net-isp-dc2 net-fg-dc1 net-mgmt; do
     create_isolated_network "$name" "${NETWORKS_FUTURE[$name]}"
   done
 fi
