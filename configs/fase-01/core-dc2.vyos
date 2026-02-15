@@ -1,0 +1,33 @@
+# backbone.net — Fase 01: Fundação
+# Roteador: core-dc2
+# Função: Core router (datacenter 2)
+# Interfaces: eth0=core-link, eth1=edge-a, eth2=edge-b, eth3=edge-c
+
+set system host-name 'core-dc2'
+
+# --- Interfaces ---
+set interfaces ethernet eth0 address '10.255.0.2/30'
+set interfaces ethernet eth0 description 'CORE: dc2 <-> dc1'
+
+set interfaces ethernet eth1 address '10.255.2.1/30'
+set interfaces ethernet eth1 description 'EDGE: dc2 <-> edge-a'
+
+set interfaces ethernet eth2 address '10.255.4.1/30'
+set interfaces ethernet eth2 description 'EDGE: dc2 <-> edge-b'
+
+set interfaces ethernet eth3 address '10.255.6.1/30'
+set interfaces ethernet eth3 description 'EDGE: dc2 <-> edge-c'
+
+# --- OSPF (IGP) ---
+set protocols ospf parameters router-id '10.255.0.2'
+set protocols ospf area 0 network '10.255.0.0/30'
+set protocols ospf area 0 network '10.255.2.0/30'
+set protocols ospf area 0 network '10.255.4.0/30'
+set protocols ospf area 0 network '10.255.6.0/30'
+
+# --- iBGP (AS 65000) ---
+set protocols bgp system-as '65000'
+set protocols bgp parameters router-id '10.255.0.2'
+set protocols bgp neighbor '10.255.0.1' remote-as '65000'
+set protocols bgp neighbor '10.255.0.1' update-source 'eth0'
+set protocols bgp address-family ipv4-unicast redistribute ospf

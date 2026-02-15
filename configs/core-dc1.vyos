@@ -1,0 +1,24 @@
+set system host-name 'core-dc1'
+
+# eth0: core<->core
+set interfaces ethernet eth0 address '10.255.0.1/30'
+# eth1: to edge-a
+set interfaces ethernet eth1 address '10.255.1.1/30'
+# eth2: to edge-b
+set interfaces ethernet eth2 address '10.255.3.1/30'
+# eth3: to edge-c
+set interfaces ethernet eth3 address '10.255.5.1/30'
+
+# OSPF
+set protocols ospf parameters router-id '10.255.0.1'
+set protocols ospf area 0 network '10.255.0.0/30'
+set protocols ospf area 0 network '10.255.1.0/30'
+set protocols ospf area 0 network '10.255.3.0/30'
+set protocols ospf area 0 network '10.255.5.0/30'
+
+# iBGP AS 65000
+set protocols bgp system-as '65000'
+set protocols bgp parameters router-id '10.255.0.1'
+set protocols bgp neighbor '10.255.0.2' remote-as '65000'
+set protocols bgp neighbor '10.255.0.2' update-source 'eth0'
+set protocols bgp address-family ipv4-unicast redistribute ospf

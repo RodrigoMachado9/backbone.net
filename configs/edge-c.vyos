@@ -1,0 +1,10 @@
+set system host-name 'edge-c'
+
+set interfaces ethernet eth0 address '10.255.5.2/30'
+set interfaces ethernet eth1 address '10.255.6.2/30'
+set interfaces ethernet eth2 address '10.10.3.1/24'
+
+set protocols ospf parameters router-id '10.255.5.2'
+set protocols ospf area 0 network '10.255.5.0/30'
+set protocols ospf area 0 network '10.255.6.0/30'
+set protocols ospf area 0 network '10.10.3.0/24'

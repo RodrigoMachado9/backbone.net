@@ -1,0 +1,18 @@
+set system host-name 'core-dc2'
+
+set interfaces ethernet eth0 address '10.255.0.2/30'
+set interfaces ethernet eth1 address '10.255.2.1/30'
+set interfaces ethernet eth2 address '10.255.4.1/30'
+set interfaces ethernet eth3 address '10.255.6.1/30'
+
+set protocols ospf parameters router-id '10.255.0.2'
+set protocols ospf area 0 network '10.255.0.0/30'
+set protocols ospf area 0 network '10.255.2.0/30'
+set protocols ospf area 0 network '10.255.4.0/30'
+set protocols ospf area 0 network '10.255.6.0/30'
+
+set protocols bgp system-as '65000'
+set protocols bgp parameters router-id '10.255.0.2'
+set protocols bgp neighbor '10.255.0.1' remote-as '65000'
+set protocols bgp neighbor '10.255.0.1' update-source 'eth0'
+set protocols bgp address-family ipv4-unicast redistribute ospf

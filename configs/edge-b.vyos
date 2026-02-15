@@ -1,0 +1,13 @@
+set system host-name 'edge-b'
+
+set interfaces ethernet eth0 address '10.255.3.2/30'
+set interfaces ethernet eth1 address '10.255.4.2/30'
+set interfaces ethernet eth2 address '10.10.2.1/24'
+
+set protocols ospf parameters router-id '10.255.3.2'
+set protocols ospf area 0 network '10.255.3.0/30'
+set protocols ospf area 0 network '10.255.4.0/30'
+set protocols ospf area 0 network '10.10.2.0/24'
+
+set vrf name 'CLIENTE-B' table '200'
+set interfaces ethernet eth2 vrf 'CLIENTE-B'

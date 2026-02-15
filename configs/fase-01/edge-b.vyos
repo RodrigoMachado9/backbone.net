@@ -1,0 +1,22 @@
+# backbone.net — Fase 01: Fundação
+# Roteador: edge-b
+# Função: Edge router (filial B)
+# Interfaces: eth0=dc1, eth1=dc2, eth2=LAN cliente-b
+
+set system host-name 'edge-b'
+
+# --- Interfaces ---
+set interfaces ethernet eth0 address '10.255.3.2/30'
+set interfaces ethernet eth0 description 'UPLINK: edge-b <-> core-dc1'
+
+set interfaces ethernet eth1 address '10.255.4.2/30'
+set interfaces ethernet eth1 description 'UPLINK: edge-b <-> core-dc2'
+
+set interfaces ethernet eth2 address '10.10.2.1/24'
+set interfaces ethernet eth2 description 'LAN: Cliente B'
+
+# --- OSPF (IGP) ---
+set protocols ospf parameters router-id '10.255.3.2'
+set protocols ospf area 0 network '10.255.3.0/30'
+set protocols ospf area 0 network '10.255.4.0/30'
+set protocols ospf area 0 network '10.10.2.0/24'

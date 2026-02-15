@@ -1,0 +1,23 @@
+```mermaid
+graph TD
+  subgraph AS65000["BACKBONE - AS 65000 (iBGP)"]
+    CORE1["core-dc1\n10.255.0.1/30"]
+    CORE2["core-dc2\n10.255.0.2/30"]
+    CORE1 --- CORE2
+  end
+
+  subgraph EDGES["FILIAIS (OSPF Area 0)"]
+    EA["edge-a\nLAN: 10.10.1.0/24"]
+    EB["edge-b\nLAN: 10.10.2.0/24"]
+    EC["edge-c\nLAN: 10.10.3.0/24"]
+  end
+
+  CORE1 ---|"10.255.1.0/30"| EA
+  CORE2 ---|"10.255.2.0/30"| EA
+
+  CORE1 ---|"10.255.3.0/30"| EB
+  CORE2 ---|"10.255.4.0/30"| EB
+
+  CORE1 ---|"10.255.5.0/30"| EC
+  CORE2 ---|"10.255.6.0/30"| EC
+```
