@@ -9,7 +9,7 @@
 </p>
 
 > Lab progressivo - arquitetura de backbone — de OSPF básico até MPLS L3VPN,
-> peering eBGP, segurança com FortiGate e observabilidade. 100% virtualizado no KVM.
+> peering eBGP, segurança com FortiGate e observabilidade. virtualizado no KVM.
 > Usa **VyOS** para roteamento de backbone e **FortiGate VM** para segurança/firewall/VPN.
 
 ---
