@@ -16,8 +16,9 @@
 | 05 | Peering Externo | eBGP, políticas, communities, filtragem | 2 semanas |
 | 06 | Segurança | Firewall, RPKI, control-plane protection | 1-2 semanas |
 | 07 | Observabilidade | SNMP, NetFlow, Grafana, alertas | 1-2 semanas |
+| 08 | Integração AWS | Site-to-Site VPN, IPsec, BGP dinâmico | 2-3 semanas |
 
-**Tempo total estimado: 10-14 semanas** (dedicando ~1h/dia)
+**Tempo total estimado: 12-17 semanas** (dedicando ~1h/dia)
 
 ---
 
@@ -295,6 +296,210 @@ Implementar monitoramento completo do backbone.
 - [ ] Grafana acessível com dashboards funcionais
 - [ ] Alerta dispara quando interface cai
 - [ ] NetFlow mostrando top talkers
+
+---
+
+---
+
+## Fase 08 — Integração AWS (Site-to-Site VPN)
+
+### Objetivo
+Conectar o backbone virtual a uma VPC na AWS via Site-to-Site VPN com IPsec e BGP dinâmico.
+
+### O que aprende
+- IPsec (IKEv1/v2): fases de negociação, SAs, algoritmos de criptografia
+- VTI (Virtual Tunnel Interface) no VyOS
+- BGP sobre túnel VPN (dynamic routing com AWS)
+- AWS VPN Gateway: arquitetura de dois túneis redundantes
+- Propagação de rotas entre on-premises e VPC
+- Transit Gateway (conceito)
+- Custos e billing de VPN na AWS
+
+### Pré-requisitos
+- Fases 01-06 completas (especialmente BGP e firewall)
+- Conta AWS (free tier + ~US$0.05/h por VPN connection)
+- AWS CLI configurado no host Ubuntu
+
+### Arquitetura
+
+```
+  [Backbone Lab - KVM]                    [AWS]
+                                          
+  edge-a ── core-dc1 ══╤═══ Túnel 1 ═══╤══ VPN GW ── VPC
+                        │               │   (2 endpoints)
+  edge-b ── core-dc2 ══╧═══ Túnel 2 ═══╧══           │
+                                                  subnet
+  edge-c                                         10.20.0.0/16
+  
+  ══ = túnel IPsec sobre internet
+```
+
+### Plano de endereçamento
+
+| Recurso | CIDR | Nota |
+|---------|------|------|
+| VPC AWS | 10.20.0.0/16 | Não pode colidir com 10.10.x.0 nem 10.255.x.0 |
+| Subnet pública | 10.20.1.0/24 | Para testes (EC2) |
+| Subnet privada | 10.20.2.0/24 | Para workloads |
+| Tunnel 1 inside | 169.254.21.0/30 | AWS atribui automaticamente |
+| Tunnel 2 inside | 169.254.21.4/30 | AWS atribui automaticamente |
+
+### Etapas de implementação
+
+#### Etapa 1 — Preparar o lado AWS (CLI ou Console)
+
+```bash
+# Criar VPC
+aws ec2 create-vpc --cidr-block 10.20.0.0/16 --tag-specifications \
+  'ResourceType=vpc,Tags=[{Key=Name,Value=backbone-lab-vpc}]'
+
+# Criar subnet
+aws ec2 create-subnet --vpc-id <vpc-id> --cidr-block 10.20.1.0/24
+
+# Criar Virtual Private Gateway (VGW)
+aws ec2 create-vpn-gateway --type ipsec.1 --amazon-side-asn 64512
+
+# Anexar VGW à VPC
+aws ec2 attach-vpn-gateway --vpn-gateway-id <vgw-id> --vpc-id <vpc-id>
+
+# Criar Customer Gateway (seu lab = "on-premises")
+# O IP público é o IP do seu roteador de saída (ou IP público do host)
+aws ec2 create-customer-gateway --type ipsec.1 \
+  --public-ip <SEU_IP_PUBLICO> --bgp-asn 65000
+
+# Criar VPN Connection (com BGP dinâmico)
+aws ec2 create-vpn-connection --type ipsec.1 \
+  --customer-gateway-id <cgw-id> --vpn-gateway-id <vgw-id> \
+  --options '{"StaticRoutesOnly":false}'
+
+# Baixar a configuração (formato genérico ou VyOS)
+aws ec2 describe-vpn-connections --vpn-connection-id <vpn-id>
+```
+
+#### Etapa 2 — Configurar IPsec no VyOS (core-dc1)
+
+```
+# IKE (Fase 1)
+set vpn ipsec ike-group AWS-IKE proposal 1 encryption aes256
+set vpn ipsec ike-group AWS-IKE proposal 1 hash sha256
+set vpn ipsec ike-group AWS-IKE proposal 1 dh-group 14
+set vpn ipsec ike-group AWS-IKE dead-peer-detection action restart
+set vpn ipsec ike-group AWS-IKE dead-peer-detection interval 15
+set vpn ipsec ike-group AWS-IKE dead-peer-detection timeout 30
+
+# ESP (Fase 2)
+set vpn ipsec esp-group AWS-ESP proposal 1 encryption aes256
+set vpn ipsec esp-group AWS-ESP proposal 1 hash sha256
+
+# Interface de saída (ajustar conforme seu setup de NAT/IP público)
+set vpn ipsec interface 'eth0'
+
+# Túnel 1
+set vpn ipsec site-to-site peer <AWS_ENDPOINT_1_IP> authentication mode pre-shared-secret
+set vpn ipsec site-to-site peer <AWS_ENDPOINT_1_IP> authentication pre-shared-secret '<PSK_TUNEL_1>'
+set vpn ipsec site-to-site peer <AWS_ENDPOINT_1_IP> ike-group AWS-IKE
+set vpn ipsec site-to-site peer <AWS_ENDPOINT_1_IP> vti bind vti0
+set vpn ipsec site-to-site peer <AWS_ENDPOINT_1_IP> vti esp-group AWS-ESP
+
+# VTI 1
+set interfaces vti vti0 address '169.254.21.2/30'
+set interfaces vti vti0 description 'AWS VPN Tunnel 1'
+
+# Túnel 2 (redundância)
+set vpn ipsec site-to-site peer <AWS_ENDPOINT_2_IP> authentication mode pre-shared-secret
+set vpn ipsec site-to-site peer <AWS_ENDPOINT_2_IP> authentication pre-shared-secret '<PSK_TUNEL_2>'
+set vpn ipsec site-to-site peer <AWS_ENDPOINT_2_IP> ike-group AWS-IKE
+set vpn ipsec site-to-site peer <AWS_ENDPOINT_2_IP> vti bind vti1
+set vpn ipsec site-to-site peer <AWS_ENDPOINT_2_IP> vti esp-group AWS-ESP
+
+# VTI 2
+set interfaces vti vti1 address '169.254.21.6/30'
+set interfaces vti vti1 description 'AWS VPN Tunnel 2'
+```
+
+#### Etapa 3 — BGP sobre os túneis
+
+```
+# Anunciar redes do lab para a AWS via BGP
+set protocols bgp neighbor '169.254.21.1' remote-as '64512'
+set protocols bgp neighbor '169.254.21.1' address-family ipv4-unicast soft-reconfiguration inbound
+set protocols bgp neighbor '169.254.21.1' timers holdtime 30
+set protocols bgp neighbor '169.254.21.1' timers keepalive 10
+
+set protocols bgp neighbor '169.254.21.5' remote-as '64512'
+set protocols bgp neighbor '169.254.21.5' address-family ipv4-unicast soft-reconfiguration inbound
+set protocols bgp neighbor '169.254.21.5' timers holdtime 30
+set protocols bgp neighbor '169.254.21.5' timers keepalive 10
+
+# Anunciar prefixos do backbone para a AWS
+set protocols bgp address-family ipv4-unicast network '10.10.1.0/24'
+set protocols bgp address-family ipv4-unicast network '10.10.2.0/24'
+set protocols bgp address-family ipv4-unicast network '10.10.3.0/24'
+```
+
+#### Etapa 4 — Habilitar propagação de rotas na AWS
+
+```bash
+# Habilitar route propagation na route table da VPC
+aws ec2 enable-vgw-route-propagation \
+  --gateway-id <vgw-id> --route-table-id <rtb-id>
+```
+
+### Verificação
+
+```
+# No VyOS
+show vpn ipsec sa                    # Túneis IPsec ativos
+show interfaces vti0                 # VTI up/up
+show ip bgp summary                  # Sessões BGP com AWS (2 peers)
+show ip bgp                          # Deve mostrar 10.20.0.0/16 vindo da AWS
+ping 10.20.1.x                       # Ping em instância EC2 na VPC
+
+# Na AWS
+aws ec2 describe-vpn-connections     # Status dos túneis
+```
+
+### Testes avançados
+
+1. **Failover de túnel**: Derrubar vti0 e verificar que tráfego migra para vti1
+2. **Latência real**: Medir RTT do edge-a até EC2 na AWS (ping/traceroute)
+3. **Throughput**: iperf3 entre lab e EC2 para medir banda do túnel
+4. **Route propagation**: Adicionar nova rede no lab e verificar que aparece na route table da VPC
+
+### Desafio extra — Transit Gateway
+
+Se quiser ir além, substitua o VPN Gateway por um Transit Gateway.
+Isso permite conectar múltiplas VPCs e múltiplas VPNs em um hub centralizado,
+que é o padrão enterprise na AWS para redes complexas.
+
+### Controle de custos
+
+| Recurso | Custo aproximado |
+|---------|-----------------|
+| VPN Connection | ~US$0.05/hora (~US$36/mês se 24/7) |
+| Data transfer out | US$0.09/GB |
+| EC2 t3.micro (teste) | Free tier ou ~US$0.01/hora |
+
+**Dica**: Suba a VPN, faça os testes em 2-4 horas, e destrua tudo. Custo total: ~US$0.20.
+
+```bash
+# Destruir tudo ao final
+aws ec2 delete-vpn-connection --vpn-connection-id <vpn-id>
+aws ec2 detach-vpn-gateway --vpn-gateway-id <vgw-id> --vpc-id <vpc-id>
+aws ec2 delete-vpn-gateway --vpn-gateway-id <vgw-id>
+aws ec2 delete-customer-gateway --customer-gateway-id <cgw-id>
+aws ec2 delete-subnet --subnet-id <subnet-id>
+aws ec2 delete-vpc --vpc-id <vpc-id>
+```
+
+### Critério de conclusão
+- [ ] Dois túneis IPsec UP (show vpn ipsec sa)
+- [ ] BGP established com AWS (2 peers, AS 64512)
+- [ ] Rotas do lab visíveis na route table da VPC
+- [ ] Rotas da VPC visíveis no VyOS (10.20.0.0/16)
+- [ ] Ping do edge-a até EC2 na VPC
+- [ ] Failover: derrubar túnel 1, tráfego migra para túnel 2
+- [ ] Recursos AWS destruídos ao final (sem custo recorrente)
 
 ---
 

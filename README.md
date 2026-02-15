@@ -1,4 +1,4 @@
-# Backbone.net — AX Lab Backbone L3
+# Backbone.net — Lab de Backbone L3
 
 <p align="center">
   <img alt="OS" src="https://img.shields.io/badge/OS-Ubuntu_24.04-E95420?logo=ubuntu&logoColor=white">
@@ -9,8 +9,8 @@
   <img alt="Custo" src="https://img.shields.io/badge/Custo-R%24%200-success">
 </p>
 
-> Arquitetura de backbone — de OSPF básico até MPLS L3VPN,
-> peering eBGP, segurança e observabilidade. virtualizado no KVM.
+> Lab progressivo para aprender arquitetura de backbone — de OSPF básico até MPLS L3VPN,
+> peering eBGP, segurança e observabilidade. 100% virtualizado no KVM.
 
 ---
 
@@ -25,6 +25,7 @@
 | 05 | Peering Externo | eBGP, políticas, communities | ⏳ Pendente |
 | 06 | Segurança | Firewall, CoPP, uRPF | ⏳ Pendente |
 | 07 | Observabilidade | SNMP, Grafana, NetFlow | ⏳ Pendente |
+| 08 | Integração AWS | Site-to-Site VPN, IPsec, BGP | ⏳ Pendente |
 
 **Roadmap completo:** [`docs/roadmap/ROADMAP.md`](docs/roadmap/ROADMAP.md)
 
@@ -98,7 +99,8 @@ backbone.net/
 │   ├── fase-04/          # + L3VPN (VRF + MP-BGP)
 │   ├── fase-05/          # + eBGP + ISP upstream
 │   ├── fase-06/          # + Firewall + Segurança
-│   └── fase-07/          # + SNMP + Monitoramento
+│   ├── fase-07/          # + SNMP + Monitoramento
+│   └── fase-08/          # + AWS Site-to-Site VPN
 ├── scripts/
 │   ├── create-networks.sh  # Cria redes virtuais no KVM
 │   ├── deploy-vms.sh       # Cria as VMs com virt-install
