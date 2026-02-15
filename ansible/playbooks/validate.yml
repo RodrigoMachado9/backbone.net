@@ -1,0 +1,90 @@
+---
+##
+# backbone.net — Playbook: Validação
+# Executa testes de conectividade e protocolo em todos os roteadores
+#
+# Uso:
+#   ansible-playbook playbooks/validate.yml -i inventory/hosts.yml
+#   ansible-playbook playbooks/validate.yml -i inventory/hosts.yml --tags ospf
+#   ansible-playbook playbooks/validate.yml -i inventory/hosts.yml --tags bgp
+#   ansible-playbook playbooks/validate.yml -i inventory/hosts.yml --tags ping
+##
+
+- name: "Validação do backbone"
+  hosts: vyos_routers
+  gather_facts: false
+
+  tasks:
+    # --- OSPF ---
+    - name: "OSPF — Verificar neighbors"
+      vyos.vyos.vyos_command:
+        commands:
+          - show ip ospf neighbor
+      register: ospf_result
+      tags: [ospf, all]
+
+    - name: "✅ OSPF neighbors"
+      ansible.builtin.debug:
+        msg: "{{ ospf_result.stdout_lines }}"
+      tags: [ospf, all]
+
+    # --- BGP ---
+    - name: "BGP — Verificar sessions"
+      vyos.vyos.vyos_command:
+        commands:
+          - show ip bgp summary
+      register: bgp_result
+      when: bgp is defined
+      tags: [bgp, all]
+
+    - name: "✅ BGP summary"
+      ansible.builtin.debug:
+        msg: "{{ bgp_result.stdout_lines }}"
+      when: bgp is defined
+      tags: [bgp, all]
+
+    # --- Connectivity ---
+    - name: "PING — Testar conectividade com edge-a LAN"
+      vyos.vyos.vyos_command:
+        commands:
+          - "ping 10.10.1.1 count 3"
+      register: ping_a
+      ignore_errors: true
+      tags: [ping, all]
+
+    - name: "PING — Testar conectividade com edge-b LAN"
+      vyos.vyos.vyos_command:
+        commands:
+          - "ping 10.10.2.1 count 3"
+      register: ping_b
+      ignore_errors: true
+      tags: [ping, all]
+
+    - name: "PING — Testar conectividade com edge-c LAN"
+      vyos.vyos.vyos_command:
+        commands:
+          - "ping 10.10.3.1 count 3"
+      register: ping_c
+      ignore_errors: true
+      tags: [ping, all]
+
+    - name: "✅ Ping results"
+      ansible.builtin.debug:
+        msg:
+          - "edge-a (10.10.1.1): {{ 'OK' if ping_a.rc == 0 else 'FAIL' }}"
+          - "edge-b (10.10.2.1): {{ 'OK' if ping_b.rc == 0 else 'FAIL' }}"
+          - "edge-c (10.10.3.1): {{ 'OK' if ping_c.rc == 0 else 'FAIL' }}"
+      tags: [ping, all]
+
+    # --- Routes ---
+    - name: "ROUTES — Tabela de rotas"
+      vyos.vyos.vyos_command:
+        commands:
+          - show ip route
+      register: routes
+      tags: [routes]
+
+    - name: "✅ Routing table"
+      ansible.builtin.debug:
+        msg: "{{ routes.stdout_lines }}"
+      tags: [routes]

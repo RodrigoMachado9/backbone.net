@@ -1,0 +1,14 @@
+{# backbone.net — Template: iBGP #}
+{% if bgp is defined %}
+set protocols bgp system-as '{{ bgp.as }}'
+set protocols bgp parameters router-id '{{ router_id }}'
+{% for neighbor in bgp.neighbors %}
+set protocols bgp neighbor '{{ neighbor.ip }}' remote-as '{{ neighbor.remote_as }}'
+{% if neighbor.update_source is defined %}
+set protocols bgp neighbor '{{ neighbor.ip }}' update-source '{{ neighbor.update_source }}'
+{% endif %}
+{% endfor %}
+{% if bgp_redistribute is defined %}
+set protocols bgp address-family ipv4-unicast redistribute {{ bgp_redistribute }}
+{% endif %}
+{% endif %}

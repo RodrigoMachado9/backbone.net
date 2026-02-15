@@ -1,0 +1,35 @@
+---
+##
+# backbone.net — Role: fortigate-base
+# Configura interfaces, admin e logging no FortiGate
+##
+
+- name: Configurar interfaces FortiGate
+  fortinet.fortios.fortios_system_interface:
+    vdom: "root"
+    state: "present"
+    system_interface:
+      name: "{{ item.key }}"
+      ip: "{{ item.value.ip }}"
+      alias: "{{ item.value.alias }}"
+      allowaccess: "{{ item.value.allowaccess }}"
+      type: "physical"
+  loop: "{{ fg_interfaces | dict2items }}"
+  loop_control:
+    label: "{{ item.key }}: {{ item.value.alias }}"
+
+- name: Configurar syslog remoto
+  fortinet.fortios.fortios_log_syslogd_setting:
+    vdom: "root"
+    log_syslogd_setting:
+      status: "enable"
+      server: "{{ syslog_server | default('10.200.0.10') }}"
+      port: 514
+      facility: "local7"
+
+- name: Configurar logging em disco
+  fortinet.fortios.fortios_log_disk_setting:
+    vdom: "root"
+    log_disk_setting:
+      status: "enable"
+      maximum_log_age: 7

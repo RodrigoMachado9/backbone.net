@@ -1,0 +1,8 @@
+{# backbone.net — Template: OSPF #}
+set protocols ospf parameters router-id '{{ router_id }}'
+{% for network in ospf_networks %}
+set protocols ospf area {{ ospf_area }} network '{{ network }}'
+{% endfor %}
+{% if loopback is defined %}
+set protocols ospf area {{ ospf_area }} network '{{ loopback }}'
+{% endif %}

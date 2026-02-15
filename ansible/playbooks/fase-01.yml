@@ -1,0 +1,44 @@
+---
+##
+# backbone.net — Playbook: Fase 01 (Fundação)
+# Configura hostname, interfaces, OSPF e iBGP
+#
+# Uso:
+#   ansible-playbook playbooks/fase-01.yml -i inventory/hosts.yml
+##
+
+- name: "Fase 01 — Fundação (OSPF + iBGP)"
+  hosts: vyos_routers
+  gather_facts: false
+
+  roles:
+    - vyos-base
+    - vyos-ospf
+    - vyos-bgp
+
+  post_tasks:
+    - name: Aguardar convergência OSPF (15s)
+      ansible.builtin.pause:
+        seconds: 15
+
+    - name: Verificar OSPF neighbors
+      vyos.vyos.vyos_command:
+        commands:
+          - show ip ospf neighbor
+      register: ospf_check
+
+    - name: "✅ OSPF neighbors"
+      ansible.builtin.debug:
+        msg: "{{ ospf_check.stdout_lines }}"
+
+    - name: Verificar BGP summary (apenas cores)
+      vyos.vyos.vyos_command:
+        commands:
+          - show ip bgp summary
+      register: bgp_check
+      when: bgp is defined
+
+    - name: "✅ BGP summary"
+      ansible.builtin.debug:
+        msg: "{{ bgp_check.stdout_lines }}"
+      when: bgp is defined

@@ -1,0 +1,15 @@
+---
+##
+# backbone.net — Role: vyos-bgp
+# Configura iBGP (AS 65000) nos cores
+##
+
+- name: Configurar BGP
+  vyos.vyos.vyos_config:
+    src: "bgp.j2"
+  when: bgp is defined
+
+- name: Salvar configuração
+  vyos.vyos.vyos_config:
+    save: true
+  when: bgp is defined

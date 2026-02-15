@@ -1,0 +1,37 @@
+---
+##
+# backbone.net — Playbook: Fase 05 (Peering + FortiGate)
+# Configura FortiGate como edge firewall + ISP upstream
+#
+# Uso:
+#   ansible-playbook playbooks/fase-05.yml -i inventory/hosts.yml
+##
+
+- name: "Fase 05 — FortiGate Edge Setup"
+  hosts: fortigate
+  gather_facts: false
+
+  roles:
+    - fortigate-base
+
+  post_tasks:
+    - name: Verificar interfaces FortiGate
+      fortinet.fortios.fortios_monitor_fact:
+        vdom: "root"
+        selectors:
+          - selector: system_interface
+      register: fg_interfaces_check
+      ignore_errors: true
+
+    - name: "✅ FortiGate interfaces"
+      ansible.builtin.debug:
+        msg: "FortiGate configurado. Acesse GUI: https://{{ ansible_host }}"
+
+- name: "Fase 05 — VyOS ISP + Peering"
+  hosts: vyos_routers
+  gather_facts: false
+
+  roles:
+    - vyos-base
+    - vyos-ospf
+    - vyos-bgp

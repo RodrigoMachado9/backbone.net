@@ -1,0 +1,29 @@
+---
+##
+# backbone.net — Role: vyos-base
+# Configura hostname, interfaces e loopback
+##
+
+- name: Configurar hostname
+  vyos.vyos.vyos_config:
+    lines:
+      - "set system host-name '{{ hostname }}'"
+
+- name: Configurar interfaces ethernet
+  vyos.vyos.vyos_config:
+    lines:
+      - "set interfaces ethernet {{ item.key }} address '{{ item.value.address }}'"
+      - "set interfaces ethernet {{ item.key }} description '{{ item.value.description }}'"
+  loop: "{{ interfaces | dict2items }}"
+  loop_control:
+    label: "{{ item.key }}: {{ item.value.address }}"
+
+- name: Configurar loopback
+  vyos.vyos.vyos_config:
+    lines:
+      - "set interfaces loopback lo address '{{ loopback }}'"
+  when: loopback is defined
+
+- name: Salvar configuração
+  vyos.vyos.vyos_config:
+    save: true

@@ -1,0 +1,12 @@
+##
+# backbone.net — Valores padrão para o lab
+# Copie este arquivo e ajuste os caminhos para seu ambiente:
+#   cp terraform.tfvars.example terraform.tfvars
+##
+
+vyos_iso     = "/home/SEU_USUARIO/lab-backbone/iso/vyos-rolling-latest.iso"
+vyos_memory  = 512
+
+# Descomente ao chegar na Fase 05:
+# enable_fase05   = true
+# fortigate_image = "/home/SEU_USUARIO/lab-backbone/images/fortios.qcow2"

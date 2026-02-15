@@ -1,0 +1,30 @@
+---
+##
+# backbone.net — Playbook: Fase 02 (Resiliência)
+# Adiciona loopbacks e migra BGP para usar loopback como source
+#
+# Uso:
+#   ansible-playbook playbooks/fase-02.yml -i inventory/hosts.yml
+##
+
+- name: "Fase 02 — Resiliência (Loopbacks + BGP resiliente)"
+  hosts: vyos_routers
+  gather_facts: false
+
+  roles:
+    - vyos-base    # Re-aplica (idempotente) + configura loopback
+    - vyos-ospf    # Re-aplica + anuncia loopback no OSPF
+    - vyos-bgp     # Re-aplica com update-source loopback
+
+  post_tasks:
+    - name: Verificar loopback acessível
+      vyos.vyos.vyos_command:
+        commands:
+          - "ping 10.0.0.1 count 3"
+      register: lo_ping
+      when: inventory_hostname != 'core-dc1'
+      ignore_errors: true
+
+    - name: "✅ Loopback reachability"
+      ansible.builtin.debug:
+        msg: "{{ lo_ping.stdout_lines | default(['skipped']) }}"

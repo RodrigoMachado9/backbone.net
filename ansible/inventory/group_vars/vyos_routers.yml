@@ -1,0 +1,5 @@
+##
+# backbone.net — Variáveis globais para VyOS
+##
+ospf_area: "0"
+bgp_redistribute: "ospf"

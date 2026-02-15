@@ -1,0 +1,27 @@
+---
+##
+# backbone.net — Playbook Master
+# Aplica TODAS as configurações em sequência
+#
+# Uso:
+#   ansible-playbook playbooks/site.yml -i inventory/hosts.yml
+#
+# Para aplicar apenas uma fase, use o playbook específico:
+#   ansible-playbook playbooks/fase-01.yml -i inventory/hosts.yml
+##
+
+- name: "Site — Configuração completa VyOS"
+  hosts: vyos_routers
+  gather_facts: false
+
+  roles:
+    - vyos-base
+    - vyos-ospf
+    - vyos-bgp
+
+- name: "Site — Configuração FortiGate"
+  hosts: fortigate
+  gather_facts: false
+
+  roles:
+    - fortigate-base

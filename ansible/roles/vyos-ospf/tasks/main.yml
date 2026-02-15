@@ -1,0 +1,13 @@
+---
+##
+# backbone.net — Role: vyos-ospf
+# Configura OSPF Area 0
+##
+
+- name: Configurar OSPF
+  vyos.vyos.vyos_config:
+    src: "ospf.j2"
+
+- name: Salvar configuração
+  vyos.vyos.vyos_config:
+    save: true
