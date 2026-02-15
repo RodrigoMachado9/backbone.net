@@ -9,7 +9,7 @@
   <img alt="Custo" src="https://img.shields.io/badge/Custo-R%24%200-success">
 </p>
 
-> arquitetura de backbone — de OSPF básico até MPLS L3VPN,
+> Arquitetura de backbone — de OSPF básico até MPLS L3VPN,
 > peering eBGP, segurança e observabilidade. virtualizado no KVM.
 
 ---
