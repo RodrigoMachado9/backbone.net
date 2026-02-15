@@ -6,8 +6,6 @@
   <img alt="RouterOS" src="https://img.shields.io/badge/RouterOS-VyOS_1.4+-orange">
   <img alt="Firewall" src="https://img.shields.io/badge/Firewall-FortiGate_VM-red">
   <img alt="Routing" src="https://img.shields.io/badge/Routing-OSPF%20%2B%20iBGP%20(AS%2065000)-green">
-  <img alt="Fase" src="https://img.shields.io/badge/Fase_atual-01-red">
-  <img alt="Custo" src="https://img.shields.io/badge/Custo-R%24%200-success">
 </p>
 
 > Lab progressivo para aprender arquitetura de backbone — de OSPF básico até MPLS L3VPN,
