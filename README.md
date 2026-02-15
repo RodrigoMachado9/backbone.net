@@ -8,7 +8,6 @@
   <img alt="Routing" src="https://img.shields.io/badge/Routing-OSPF%20%2B%20iBGP%20(AS%2065000)-green">
   <img alt="IaC" src="https://img.shields.io/badge/IaC-Terraform%20%2B%20Ansible-blueviolet">
   <img alt="CI" src="https://img.shields.io/badge/CI-GitHub_Actions-2088FF?logo=githubactions&logoColor=white">
-  <img alt="Fase" src="https://img.shields.io/badge/Fase_atual-01-red">
 </p>
 
 > Lab progressivo - arquitetura de backbone — de OSPF básico até MPLS L3VPN,
