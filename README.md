@@ -1,4 +1,4 @@
-# Backbone.net — Lab AX Backbone L3
+# Backbone.net — Lab de Backbone L3
 
 <p align="center">
   <img alt="OS" src="https://img.shields.io/badge/OS-Ubuntu_24.04-E95420?logo=ubuntu&logoColor=white">
@@ -10,8 +10,8 @@
   <img alt="Custo" src="https://img.shields.io/badge/Custo-R%24%200-success">
 </p>
 
-> Lab progressivo - arquitetura de backbone — de OSPF básico até MPLS L3VPN,
-> peering eBGP, segurança com FortiGate e observabilidade. virtualizado no KVM.
+> Lab progressivo para aprender arquitetura de backbone — de OSPF básico até MPLS L3VPN,
+> peering eBGP, segurança com FortiGate e observabilidade. 100% virtualizado no KVM.
 > Usa **VyOS** para roteamento de backbone e **FortiGate VM** para segurança/firewall/VPN.
 
 ---
@@ -28,6 +28,7 @@
 | 06 | Segurança | **FortiGate** firewall, CoPP, uRPF | ⏳ Pendente |
 | 07 | Observabilidade | SNMP, Grafana, NetFlow | ⏳ Pendente |
 | 08 | Integração AWS | **FortiGate** VPN concentrator, IPsec | ⏳ Pendente |
+| 09 | IaC | **Terraform** + **Ansible** — infra e config como código | ⏳ Pendente |
 
 **Roadmap completo:** [`docs/roadmap/ROADMAP.md`](docs/roadmap/ROADMAP.md)
 
@@ -105,6 +106,14 @@ backbone.net/
 │   ├── fase-06/          # + Firewall + Segurança
 │   ├── fase-07/          # + SNMP + Monitoramento
 │   └── fase-08/          # + AWS Site-to-Site VPN
+├── terraform/              # IaC — Infraestrutura (Fase 09)
+│   ├── modules/            # Módulos reutilizáveis (kvm-network, kvm-vyos, etc)
+│   └── environments/       # Lab (KVM) e AWS
+├── ansible/                # IaC — Configuração (Fase 09)
+│   ├── inventory/          # Hosts e variáveis
+│   ├── roles/              # Roles por função (vyos-ospf, fortigate-base, etc)
+│   ├── playbooks/          # Playbook por fase
+│   └── templates/          # Jinja2 templates para configs
 ├── scripts/
 │   ├── create-networks.sh  # Cria redes virtuais no KVM
 │   ├── deploy-vms.sh       # Cria as VMs com virt-install
@@ -124,6 +133,7 @@ backbone.net/
 
 | Doc | Descrição |
 |-----|-----------|
+| [Roadmap](docs/roadmap/ROADMAP.md) | Plano completo das 7 fases |
 | [Arquitetura](docs/architecture/architecture.md) | Decisões de design |
 | [Endereçamento](docs/architecture/addressing-plan.md) | Plano IP completo |
 | [Runbook](docs/operations/runbook.md) | Comandos operacionais |
