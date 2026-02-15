@@ -6,11 +6,13 @@
   <img alt="RouterOS" src="https://img.shields.io/badge/RouterOS-VyOS_1.4+-orange">
   <img alt="Firewall" src="https://img.shields.io/badge/Firewall-FortiGate_VM-red">
   <img alt="Routing" src="https://img.shields.io/badge/Routing-OSPF%20%2B%20iBGP%20(AS%2065000)-green">
+  <img alt="IaC" src="https://img.shields.io/badge/IaC-Terraform%20%2B%20Ansible-blueviolet">
+  <img alt="CI" src="https://img.shields.io/badge/CI-GitHub_Actions-2088FF?logo=githubactions&logoColor=white">
   <img alt="Fase" src="https://img.shields.io/badge/Fase_atual-01-red">
 </p>
 
 > Lab progressivo - arquitetura de backbone — de OSPF básico até MPLS L3VPN,
-> peering eBGP, segurança com FortiGate e observabilidade. virtualizado no KVM.
+> peering eBGP, segurança com FortiGate e observabilidade.virtualizado no KVM.
 > Usa **VyOS** para roteamento de backbone e **FortiGate VM** para segurança/firewall/VPN.
 
 ---
@@ -75,18 +77,25 @@ Detalhe: [`docs/architecture/addressing-plan.md`](docs/architecture/addressing-p
 # 1. Verificar KVM
 kvm-ok
 
-# 2. Criar redes virtuais
+# 2. Configurar ambiente (copie e edite)
+cp .env.example .env
+# edite .env com os caminhos da ISO VyOS e imagem FortiGate
+
+# 3. Criar redes virtuais
 sudo bash scripts/create-networks.sh
 
-# 3. Criar VMs
+# 4. Criar VMs
 bash scripts/deploy-vms.sh
 
-# 4. Instalar VyOS em cada VM (via console)
+# 5. Instalar VyOS em cada VM (via console)
 sudo virsh console core-dc1
 # login: vyos / vyos → install image → poweroff → remover CDROM → start
 
-# 5. Aplicar configs da fase atual
+# 6. Aplicar configs da fase atual
 # Copie o conteúdo de configs/fase-01/*.vyos no modo configure de cada VM
+
+# 7. (Opcional) Via IaC — deploy completo automatizado:
+# make deploy-fase01
 ```
 
 ---
@@ -95,6 +104,10 @@ sudo virsh console core-dc1
 
 ```
 backbone.net/
+├── .env.example            # Variáveis de ambiente (copie para .env)
+├── .github/
+│   └── workflows/
+│       └── ci.yml          # CI: yamllint, terraform validate, shellcheck
 ├── configs/
 │   ├── fase-01/          # Configs OSPF + iBGP básico
 │   ├── fase-02/          # + Loopbacks + BGP resiliente
@@ -110,7 +123,7 @@ backbone.net/
 ├── ansible/                # IaC — Configuração (Fase 09)
 │   ├── inventory/          # Hosts e variáveis
 │   ├── roles/              # Roles por função (vyos-ospf, fortigate-base, etc)
-│   ├── playbooks/          # Playbook por fase
+│   ├── playbooks/          # Playbook por fase + validação + failover
 │   └── templates/          # Jinja2 templates para configs
 ├── scripts/
 │   ├── create-networks.sh  # Cria redes virtuais no KVM
@@ -122,7 +135,8 @@ backbone.net/
 │   ├── architecture/
 │   ├── operations/
 │   └── executive/
-└── diagrams/
+├── diagrams/
+└── Makefile                # Orquestração: make deploy-fase01, make test-failover
 ```
 
 ---
@@ -158,6 +172,12 @@ bash scripts/lab-control.sh restore "fase-01-ok"
 
 # Simular WAN (latência 50ms, jitter 10ms, 0.5% perda)
 sudo bash scripts/simulate-wan.sh br-dc1-ea 50ms 10ms 0.5%
+
+# Validar backbone (com asserts programáticos)
+make validate
+
+# Teste de failover automatizado (desabilita/reabilita link inter-core)
+make test-failover
 ```
 
 ---

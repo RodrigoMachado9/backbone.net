@@ -28,6 +28,14 @@
         msg: "{{ ospf_result.stdout_lines }}"
       tags: [ospf, all]
 
+    - name: "🔍 ASSERT — OSPF tem pelo menos um neighbor Full"
+      ansible.builtin.assert:
+        that:
+          - "'Full' in ospf_result.stdout[0]"
+        fail_msg: "FALHA: Nenhum OSPF neighbor em estado Full em {{ inventory_hostname }}"
+        success_msg: "OK: OSPF neighbor(s) em Full em {{ inventory_hostname }}"
+      tags: [ospf, all]
+
     # --- BGP ---
     - name: "BGP — Verificar sessions"
       vyos.vyos.vyos_command:
@@ -40,6 +48,15 @@
     - name: "✅ BGP summary"
       ansible.builtin.debug:
         msg: "{{ bgp_result.stdout_lines }}"
+      when: bgp is defined
+      tags: [bgp, all]
+
+    - name: "🔍 ASSERT — BGP session Established"
+      ansible.builtin.assert:
+        that:
+          - "'Established' in bgp_result.stdout[0] or 'established' in bgp_result.stdout[0]"
+        fail_msg: "FALHA: Nenhuma sessão BGP Established em {{ inventory_hostname }}"
+        success_msg: "OK: BGP session(s) Established em {{ inventory_hostname }}"
       when: bgp is defined
       tags: [bgp, all]
 
@@ -76,6 +93,16 @@
           - "edge-c (10.10.3.1): {{ 'OK' if ping_c.rc == 0 else 'FAIL' }}"
       tags: [ping, all]
 
+    - name: "🔍 ASSERT — Ping fim-a-fim OK"
+      ansible.builtin.assert:
+        that:
+          - "ping_a.rc == 0"
+          - "ping_b.rc == 0"
+          - "ping_c.rc == 0"
+        fail_msg: "FALHA: Conectividade fim-a-fim incompleta em {{ inventory_hostname }}"
+        success_msg: "OK: Todos os pings fim-a-fim responderam em {{ inventory_hostname }}"
+      tags: [ping, all]
+
     # --- Routes ---
     - name: "ROUTES — Tabela de rotas"
       vyos.vyos.vyos_command:
@@ -87,4 +114,14 @@
     - name: "✅ Routing table"
       ansible.builtin.debug:
         msg: "{{ routes.stdout_lines }}"
+      tags: [routes]
+
+    - name: "🔍 ASSERT — Rota para todas as LANs presente"
+      ansible.builtin.assert:
+        that:
+          - "'10.10.1.0' in routes.stdout[0]"
+          - "'10.10.2.0' in routes.stdout[0]"
+          - "'10.10.3.0' in routes.stdout[0]"
+        fail_msg: "FALHA: Tabela de rotas incompleta em {{ inventory_hostname }} — faltam rotas para LANs"
+        success_msg: "OK: Rotas para todas as LANs presentes em {{ inventory_hostname }}"
       tags: [routes]

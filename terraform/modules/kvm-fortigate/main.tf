@@ -57,12 +57,22 @@ variable "autostart" {
   default = false
 }
 
+# --- Imagem base (importar para o pool do libvirt) ---
+# Necessário para que o clone funcione. Se a imagem já existir no pool,
+# o Terraform vai detectar e não reimportar.
+resource "libvirt_volume" "base_image" {
+  name   = basename(var.base_image_path)
+  pool   = var.pool
+  source = var.base_image_path
+  format = "qcow2"
+}
+
 # --- Disco (clone da imagem base) ---
 resource "libvirt_volume" "boot_disk" {
-  name             = "${var.name}-boot.qcow2"
-  pool             = var.pool
-  format           = "qcow2"
-  base_volume_name = basename(var.base_image_path)
+  name           = "${var.name}-boot.qcow2"
+  pool           = var.pool
+  format         = "qcow2"
+  base_volume_id = libvirt_volume.base_image.id
 }
 
 # --- Log disk (FortiGate precisa para logging) ---

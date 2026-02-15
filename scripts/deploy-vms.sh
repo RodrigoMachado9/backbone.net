@@ -68,11 +68,13 @@ create_vm() {
     --disk "path=$disk,format=qcow2,bus=virtio" \
     --cdrom "$VYOS_ISO" \
     --osinfo detect=on,require=off \
-    --graphics vnc,listen=0.0.0.0 \
+    --graphics vnc,listen=127.0.0.1 \
     --noautoconsole \
     "$@"
 
   echo "       → Criada. Console: virt-manager ou 'sudo virsh console $name'"
+  echo "       → VNC acessível apenas via localhost (segurança)."
+  echo "         Para acesso remoto, use SSH tunnel: ssh -L 5900:127.0.0.1:5900 user@host"
 }
 
 echo "--- Criando VMs ---"

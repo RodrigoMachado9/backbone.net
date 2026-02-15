@@ -1,0 +1,169 @@
+---
+##
+# backbone.net — Playbook: Teste de Failover Automatizado
+#
+# Simula queda do link inter-core (core-dc1 eth0) e valida que:
+#   1. Tráfego reconverge via caminho alternativo
+#   2. Todas as LANs continuam acessíveis
+#   3. Link é restaurado ao final
+#
+# Uso:
+#   ansible-playbook playbooks/test-failover.yml -i inventory/hosts.yml
+#
+# ⚠️  Este playbook DESABILITA temporariamente a interface eth0 de core-dc1.
+#     Certifique-se de que o lab está estável antes de executar.
+##
+
+- name: "Failover Test — Fase 1: Validação pré-falha"
+  hosts: vyos_routers
+  gather_facts: false
+
+  tasks:
+    - name: "PRE-CHECK — Ping edge-a → edge-c (via core)"
+      vyos.vyos.vyos_command:
+        commands:
+          - "ping 10.10.3.1 count 3"
+      register: pre_ping
+      when: inventory_hostname == 'edge-a'
+
+    - name: "🔍 ASSERT — Conectividade OK antes da falha"
+      ansible.builtin.assert:
+        that:
+          - "pre_ping.rc == 0"
+        fail_msg: "FALHA: Conectividade já está quebrada ANTES do teste. Corrija antes de prosseguir."
+        success_msg: "OK: Conectividade fim-a-fim validada pré-falha."
+      when: inventory_hostname == 'edge-a'
+
+    - name: "PRE-CHECK — Traceroute edge-a → edge-c (path original)"
+      vyos.vyos.vyos_command:
+        commands:
+          - "traceroute 10.10.3.1"
+      register: pre_traceroute
+      when: inventory_hostname == 'edge-a'
+
+    - name: "📍 Path original (pré-falha)"
+      ansible.builtin.debug:
+        msg: "{{ pre_traceroute.stdout_lines }}"
+      when: inventory_hostname == 'edge-a'
+
+- name: "Failover Test — Fase 2: Simular queda do link inter-core"
+  hosts: core-dc1
+  gather_facts: false
+
+  tasks:
+    - name: "⚡ FALHA — Desabilitar eth0 (link inter-core) em core-dc1"
+      vyos.vyos.vyos_config:
+        lines:
+          - "set interfaces ethernet eth0 disable"
+
+    - name: "⏳ Aguardar reconvergência OSPF (45s)"
+      ansible.builtin.pause:
+        seconds: 45
+        prompt: "Aguardando OSPF reconverger após queda de eth0 em core-dc1..."
+
+- name: "Failover Test — Fase 3: Validação pós-falha"
+  hosts: vyos_routers
+  gather_facts: false
+
+  tasks:
+    - name: "POST-CHECK — Ping edge-a → edge-c (deve reconverger)"
+      vyos.vyos.vyos_command:
+        commands:
+          - "ping 10.10.3.1 count 5"
+      register: post_ping
+      when: inventory_hostname == 'edge-a'
+      ignore_errors: true
+
+    - name: "🔍 ASSERT — Conectividade MANTIDA após falha"
+      ansible.builtin.assert:
+        that:
+          - "post_ping.rc == 0"
+        fail_msg: "FALHA CRÍTICA: Conectividade perdida após queda do link inter-core!"
+        success_msg: "✅ SUCESSO: Tráfego reconvergiu via caminho alternativo."
+      when: inventory_hostname == 'edge-a'
+
+    - name: "POST-CHECK — Traceroute edge-a → edge-c (novo path)"
+      vyos.vyos.vyos_command:
+        commands:
+          - "traceroute 10.10.3.1"
+      register: post_traceroute
+      when: inventory_hostname == 'edge-a'
+
+    - name: "📍 Path alternativo (pós-falha)"
+      ansible.builtin.debug:
+        msg: "{{ post_traceroute.stdout_lines }}"
+      when: inventory_hostname == 'edge-a'
+
+    - name: "POST-CHECK — Verificar OSPF neighbors (devem ter mudado)"
+      vyos.vyos.vyos_command:
+        commands:
+          - show ip ospf neighbor
+      register: post_ospf
+
+    - name: "📋 OSPF neighbors pós-falha"
+      ansible.builtin.debug:
+        msg: "{{ post_ospf.stdout_lines }}"
+
+    - name: "POST-CHECK — Ping para todas as LANs"
+      vyos.vyos.vyos_command:
+        commands:
+          - "ping 10.10.1.1 count 3"
+          - "ping 10.10.2.1 count 3"
+          - "ping 10.10.3.1 count 3"
+      register: post_all_pings
+      ignore_errors: true
+
+- name: "Failover Test — Fase 4: Restaurar link"
+  hosts: core-dc1
+  gather_facts: false
+
+  tasks:
+    - name: "🔧 RESTORE — Reabilitar eth0 (link inter-core) em core-dc1"
+      vyos.vyos.vyos_config:
+        lines:
+          - "delete interfaces ethernet eth0 disable"
+
+    - name: "⏳ Aguardar reconvergência OSPF (30s)"
+      ansible.builtin.pause:
+        seconds: 30
+        prompt: "Aguardando OSPF reconverger após restauração de eth0 em core-dc1..."
+
+- name: "Failover Test — Fase 5: Validação pós-restauração"
+  hosts: vyos_routers
+  gather_facts: false
+
+  tasks:
+    - name: "RESTORE-CHECK — OSPF neighbors (devem voltar ao normal)"
+      vyos.vyos.vyos_command:
+        commands:
+          - show ip ospf neighbor
+      register: restore_ospf
+
+    - name: "📋 OSPF neighbors pós-restauração"
+      ansible.builtin.debug:
+        msg: "{{ restore_ospf.stdout_lines }}"
+
+    - name: "RESTORE-CHECK — Ping fim-a-fim completo"
+      vyos.vyos.vyos_command:
+        commands:
+          - "ping 10.10.1.1 count 3"
+          - "ping 10.10.2.1 count 3"
+          - "ping 10.10.3.1 count 3"
+      register: restore_pings
+      ignore_errors: true
+
+    - name: "🔍 ASSERT — Conectividade restaurada"
+      ansible.builtin.assert:
+        that:
+          - "restore_pings.rc == 0"
+        fail_msg: "FALHA: Conectividade NÃO restaurada após reabilitar link!"
+        success_msg: "✅ SUCESSO: Backbone completamente restaurado."
+
+    - name: "🎉 RESULTADO FINAL"
+      ansible.builtin.debug:
+        msg: >
+          Teste de failover concluído com sucesso!
+          - Link inter-core desabilitado → tráfego reconvergiu
+          - Link restaurado → backbone voltou ao estado original
+          - Resiliência dual-core validada.
+      when: inventory_hostname == 'edge-a'

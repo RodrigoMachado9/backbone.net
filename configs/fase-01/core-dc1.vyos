@@ -30,8 +30,13 @@ set protocols ospf area 0 network '10.255.3.0/30'
 set protocols ospf area 0 network '10.255.5.0/30'
 
 # --- iBGP (AS 65000) ---
+# NOTA: Na fase 01, BGP usa IP de interface física como neighbor/source.
+#       Se o link inter-core cair, a sessão BGP cai junto.
+#       → Migrar para loopback (update-source lo) na Fase 02 para resiliência.
 set protocols bgp system-as '65000'
 set protocols bgp parameters router-id '10.255.0.1'
 set protocols bgp neighbor '10.255.0.2' remote-as '65000'
 set protocols bgp neighbor '10.255.0.2' update-source 'eth0'
+# TODO: Adicionar route-map para filtrar redistribuição OSPF→BGP na Fase 05
+#       (evitar loops de redistribuição quando eBGP entrar na topologia).
 set protocols bgp address-family ipv4-unicast redistribute ospf

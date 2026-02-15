@@ -8,12 +8,19 @@
 #
 # Início rápido:
 #   cp terraform/environments/lab/terraform.tfvars.example terraform/environments/lab/terraform.tfvars
-#   # edite com seus caminhos
+#   # edite com seus caminhos (ou crie um .env — veja abaixo)
 #   make deploy-fase01
+
+# --- Carregar variáveis de .env se existir ---
+# Crie um arquivo .env na raiz com:
+#   VYOS_ISO=/home/seu_usuario/lab-backbone/iso/vyos-rolling-latest.iso
+#   FORTIGATE_IMAGE=/home/seu_usuario/lab-backbone/images/fortios.qcow2
+-include .env
+export
 
 .PHONY: help infra infra-plan infra-destroy \
         config-fase01 config-fase02 config-fase05 config-all \
-        test-ospf test-bgp test-ping test-routes validate \
+        test-ospf test-bgp test-ping test-routes test-failover validate \
         deploy-fase01 deploy-fase02 \
         status destroy clean
 
@@ -29,6 +36,11 @@ help:
 	@echo "  backbone.net — Comandos"
 	@echo "  ======================="
 	@echo ""
+	@echo "  Configuração rápida:"
+	@echo "    Crie um arquivo .env na raiz com:"
+	@echo "      VYOS_ISO=/caminho/para/vyos.iso"
+	@echo "      FORTIGATE_IMAGE=/caminho/para/fortios.qcow2"
+	@echo ""
 	@echo "  Infraestrutura (Terraform):"
 	@echo "    make infra             Criar VMs e redes no KVM"
 	@echo "    make infra-plan        Ver o que será criado"
@@ -41,11 +53,12 @@ help:
 	@echo "    make config-all        Aplicar todas as configs"
 	@echo ""
 	@echo "  Testes:"
-	@echo "    make validate          Rodar todos os testes"
+	@echo "    make validate          Rodar todos os testes (com asserts)"
 	@echo "    make test-ospf         Verificar OSPF"
 	@echo "    make test-bgp          Verificar BGP"
 	@echo "    make test-ping         Testar conectividade"
 	@echo "    make test-routes       Mostrar tabelas de rota"
+	@echo "    make test-failover     Teste de failover automatizado (link inter-core)"
 	@echo ""
 	@echo "  Deploy completo:"
 	@echo "    make deploy-fase01     Infra + Config + Teste (Fase 01)"
@@ -117,6 +130,12 @@ test-ping:
 
 test-routes:
 	cd $(ANSIBLE_DIR) && ansible-playbook playbooks/validate.yml --tags routes
+
+test-failover:
+	@echo "⚠️  Teste de failover: vai desabilitar/reabilitar link inter-core."
+	@echo "    Certifique-se de que o lab está estável."
+	@echo ""
+	cd $(ANSIBLE_DIR) && ansible-playbook playbooks/test-failover.yml
 
 # ==============================================================
 # DEPLOY COMPLETO (Infra + Config + Teste)
