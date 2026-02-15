@@ -1,4 +1,4 @@
-# Backbone.net — Lab de Backbone L3
+# Backbone.net — AX Lab Backbone L3
 
 <p align="center">
   <img alt="OS" src="https://img.shields.io/badge/OS-Ubuntu_24.04-E95420?logo=ubuntu&logoColor=white">
