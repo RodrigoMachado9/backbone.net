@@ -10,7 +10,7 @@
   <img alt="CI" src="https://img.shields.io/badge/CI-GitHub_Actions-2088FF?logo=githubactions&logoColor=white">
 </p>
 
-> Lab progressivo - arquitetura de backbone — de OSPF básico até MPLS L3VPN,
+> Lab progressivo - arquitetura de backbone — OSPF básico até MPLS L3VPN,
 > peering eBGP, segurança com FortiGate e observabilidade.virtualizado no KVM.
 > Usa **VyOS** para roteamento de backbone e **FortiGate VM** para segurança/firewall/VPN.
 
