@@ -8,7 +8,7 @@
   <img alt="Routing" src="https://img.shields.io/badge/Routing-OSPF%20%2B%20iBGP%20(AS%2065000)-green">
 </p>
 
-> Lab progressivo para aprender arquitetura de backbone — de OSPF básico até MPLS L3VPN,
+> Lab progressivo - arquitetura de backbone — de OSPF básico até MPLS L3VPN,
 > peering eBGP, segurança com FortiGate e observabilidade. 100% virtualizado no KVM.
 > Usa **VyOS** para roteamento de backbone e **FortiGate VM** para segurança/firewall/VPN.
 
