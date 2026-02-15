@@ -124,7 +124,6 @@ backbone.net/
 
 | Doc | Descrição |
 |-----|-----------|
-| [Roadmap](docs/roadmap/ROADMAP.md) | Plano completo das 7 fases |
 | [Arquitetura](docs/architecture/architecture.md) | Decisões de design |
 | [Endereçamento](docs/architecture/addressing-plan.md) | Plano IP completo |
 | [Runbook](docs/operations/runbook.md) | Comandos operacionais |
